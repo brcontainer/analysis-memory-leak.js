@@ -7,12 +7,12 @@
 (function (window) {
     "use strict";
 
-    var le = false, aml;
+    var le = false, aml, limit = 200;
 
     aml = {
-        "uniq_id": String((new Date()).getTime()),
+        "uniqId": String((new Date()).getTime()),
         "checked": 1,
-        "is_seen": [],
+        "isSeen": [],
 
         "enableLogException": function (a) {
             le = a === true ? true : false;
@@ -68,12 +68,12 @@
             aml.checked += 1;
 
             if (aml.isArray(obj) || aml.isObject(obj)) {
-                if ((obj.x_leaks_checked || "") === aml.uniq_id) {
+                if ((obj.xLeaksChecked || "") === aml.uniqId) {
                     return;
                 }
 
                 try {
-                    obj.x_leaks_checked = aml.uniq_id;
+                    obj.xLeaksChecked = aml.uniqId;
                 } catch (ee) {
                     if (le === true) {
                         aml.log(obj, ee);
@@ -84,9 +84,9 @@
             }
         },
 
-        "logTooBig": function (obj, limit) {
-            if (limit > 200) {
-                aml.log("Object too big, memory leak? [size: " + limit + "]");
+        "logTooBig": function (obj, size) {
+            if (size > limit) {
+                aml.log("Object too big, memory leak? [size: " + size + "]");
                 aml.log(obj);
                 aml.log("-------");
             }
@@ -118,8 +118,8 @@
             var args = Array.prototype.slice.call(arguments);
             args.shift();
             return function () {
-                var new_args = Array.prototype.slice.call(arguments);
-                args = args.concat(new_args);
+                var newArgs = Array.prototype.slice.call(arguments);
+                args = args.concat(newArgs);
                 return fn.apply(window, args);
             };
         }
