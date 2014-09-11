@@ -2,6 +2,8 @@
  * analyses-memory-leak.js 0.0.1
  * Copyright (c) 2014 Guilherme Nascimento (brcontainer@yahoo.com.br)
  * Released under the MIT license
+ *
+ * Note: Based in https://github.com/Doist/JavaScript-memory-leak-checker
  */
 
 (function (window) {
