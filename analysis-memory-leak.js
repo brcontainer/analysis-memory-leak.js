@@ -1,5 +1,5 @@
 /*
- * analyses-memory-leak.js 0.0.1
+ * analysis-memory-leak.js 0.0.1
  * Copyright (c) 2014 Guilherme Nascimento (brcontainer@yahoo.com.br)
  * Released under the MIT license
  *
@@ -127,5 +127,5 @@
         }
     };
 
-    window.analysesMemoryLeak = aml.checkLeaks;
+    window.analysisMemoryLeak = aml.checkLeaks;
 }(window));
