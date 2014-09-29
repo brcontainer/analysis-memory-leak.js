@@ -1,7 +1,7 @@
-analyses-memory-leak.js
+analysis-memory-leak.js
 ==============================
 
-An simple lib to analyses memory leak in javascript objects or arrays
+A simple LIB to analyze (simple debug) memory leak in JavaScript objects or arrays
 
 Note: This lib is an fork of [JavaScript-memory-leak-checker](https://github.com/Doist/JavaScript-memory-leak-checker) created by [@Doist](https://github.com/Doist)
 
@@ -11,11 +11,11 @@ How to use:
 Simple example
 
 ```
-analysesMemoryLeak(window);
+analysisMemoryLeak(window);
 ```
 
 
-Improvements in analyses-memory-leak.js
+Improvements in analysis-memory-leak.js
 -----
 
 * Added `"use strict";`
