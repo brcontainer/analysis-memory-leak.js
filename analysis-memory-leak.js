@@ -1,131 +1,127 @@
 /*
- * analysis-memory-leak.js 0.0.1
- * Copyright (c) 2014 Guilherme Nascimento (brcontainer@yahoo.com.br)
+ * analysis-memory-leak.js 0.1.0
+ * Copyright (c) 2017 Guilherme Nascimento (brcontainer@yahoo.com.br)
  * Released under the MIT license
  *
  * Note: Based in https://github.com/Doist/JavaScript-memory-leak-checker
  */
 
-(function (window) {
+(function (w) {
     "use strict";
 
-    var le = false, aml, limit = 200;
+    var le = false, limit = 200, checked = 1, issues = 0, id = String((new Date()).getTime());
 
-    aml = {
-        "uniqId": String((new Date()).getTime()),
-        "checked": 1,
-        "isSeen": [],
+    function enableLogException(a) {
+        le = a === true;
+    }
 
-        "enableLogException": function (a) {
-            le = a === true ? true : false;
-        },
+    function log() {
+        var a, i, j;
+        if (w.console && w.console.log) {
+            if (w.console.log.apply) {
+                w.console.log.apply(w.console, arguments);
+            } else {
+                a = [];
+                j = arguments.length;
 
-        "log": function () {
-            var a, i, j;
-            if (window.console && window.console.log) {
-                if (window.console.log.apply) {
-                    window.console.log.apply(window.console, arguments);
-                } else {
-                    a = [];
-                    j = arguments.length;
-                    for (i = 0; i < j; i += 1) {
-                        a[i] = arguments[i];
-                    }
-                    window.console.log(a);
-                }
+                for (i = 0; i < j; i += 1) a[i] = arguments[i];
+
+                w.console.log(a);
             }
-        },
-
-        "checkLeaks": function (obj) {
-            var key, i, j;
-
-            if (!obj || (typeof obj === "function") || aml.checked > 20000) {
-                return;
-            }
-
-            if (aml.isArray(obj) || aml.isObject(obj)) {
-                if (aml.isArray(obj)) {
-                    aml.logTooBig(obj, obj.length);
-                    j = obj.length;
-                    for (i = 0; i < j; i += 1) {
-                        aml.checkIfNeeded(obj[i]);
-                    }
-                } else if (aml.isObject(obj)) {
-                    aml.logTooBig(obj, aml.getKeys(obj).length);
-
-                    for (key in obj) {
-                        if (obj.hasOwnProperty(key)) {
-                            aml.checkIfNeeded(obj[key]);
-                        }
-                    }
-                }
-            }
-        },
-
-        "checkIfNeeded": function (obj) {
-            if (!obj) {
-                return;
-            }
-
-            aml.checked += 1;
-
-            if (aml.isArray(obj) || aml.isObject(obj)) {
-                if ((obj.xLeaksChecked || "") === aml.uniqId) {
-                    return;
-                }
-
-                try {
-                    obj.xLeaksChecked = aml.uniqId;
-                } catch (ee) {
-                    if (le === true) {
-                        aml.log(obj, ee);
-                    }
-                }
-
-                window.setTimeout(aml.partial(aml.checkLeaks, obj), 5);
-            }
-        },
-
-        "logTooBig": function (obj, size) {
-            if (size > limit) {
-                aml.log("Object too big, memory leak? [size: " + size + "]");
-                aml.log(obj);
-                aml.log("-------");
-            }
-        },
-
-        "getKeys": function (obj) {
-            var rval = [], prop;
-            for (prop in obj) {
-                if (obj.hasOwnProperty(prop)) {
-                    rval.push(prop);
-                }
-            }
-            return rval;
-        },
-
-        "isArray": function (obj) {
-            try {
-                return obj instanceof Array;
-            } catch (e) {
-                return false;
-            }
-        },
-
-        "isObject": function (obj) {
-            return typeof obj === "object";
-        },
-
-        "partial": function (fn) {
-            var args = Array.prototype.slice.call(arguments);
-            args.shift();
-            return function () {
-                var newArgs = Array.prototype.slice.call(arguments);
-                args = args.concat(newArgs);
-                return fn.apply(window, args);
-            };
         }
-    };
+    }
 
-    window.analysisMemoryLeak = aml.checkLeaks;
+    function checkLeaks(obj) {
+        var key, i, j;
+
+        if (!obj || (typeof obj === "function") || checked > 20000) return;
+        if (!isArray(obj) && !isObject(obj)) return;
+
+        if (isObject(obj)) {
+            logTooBig(obj, getKeys(obj).length);
+
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) checkIfNeeded(obj[key]);
+            }
+        } else {
+            logTooBig(obj, obj.length);
+            j = obj.length;
+
+            for (i = 0; i < j; i++) checkIfNeeded(obj[i]);
+        }
+    }
+
+    function checkIfNeeded(obj) {
+        if (!obj) return;
+
+        checked++;
+
+        if (!isArray(obj) && !isObject(obj)) return;
+        if ((obj.xLeaksChecked || "") === id) return;
+
+        try {
+            obj.xLeaksChecked = id;
+        } catch (ee) {
+            if (le) log(obj, ee);
+        }
+
+        w.setTimeout(partial(checkLeaks, obj), 5);
+    }
+
+    function logTooBig(obj, size) {
+        if (size > limit) {
+            issues++;
+
+            log("Object too big, memory leak? [size: " + size + "]");
+            log(obj);
+            log("-------");
+        }
+    }
+
+    function getKeys(obj) {
+        var rval = [], prop;
+
+        for (prop in obj) {
+            if (obj.hasOwnProperty(prop)) rval.push(prop);
+        }
+
+        return rval;
+    }
+
+    function isArray(obj) {
+        try {
+            return obj instanceof Array;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function isObject(obj) {
+        return typeof obj === "object";
+    }
+
+    function partial(fn) {
+        var args = Array.prototype.slice.call(arguments);
+        args.shift();
+
+        return function () {
+            var newArgs = Array.prototype.slice.call(arguments);
+            args = args.concat(newArgs);
+            return fn.apply(w, args);
+        };
+    }
+
+    w.analysisMemoryLeak = {
+        "check": function (obj) {
+            if (!obj) {
+                log("Invalid object:", obj);
+                return;
+            }
+
+            checkLeaks(obj);
+
+            if (issues === 0) log("Your object is fine:", obj);
+        },
+        "showExceptions": enableLogException
+    };
 }(window));
