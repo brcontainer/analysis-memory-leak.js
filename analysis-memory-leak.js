@@ -1,6 +1,6 @@
 /*
- * analysis-memory-leak.js 0.1.0
- * Copyright (c) 2017 Guilherme Nascimento (brcontainer@yahoo.com.br)
+ * analysis-memory-leak.js 0.1.1
+ * Copyright (c) 2018 Guilherme Nascimento (brcontainer@yahoo.com.br)
  * Released under the MIT license
  *
  * Note: Based in https://github.com/Doist/JavaScript-memory-leak-checker
@@ -11,31 +11,34 @@
 
     var le = false, limit = 200, checked = 1, issues = 0, id = String((new Date()).getTime());
 
-    function enableLogException(a) {
+    function enableLogException(a)
+    {
         le = a === true;
     }
 
-    function log() {
+    function log()
+    {
         var a, i, j;
-        if (w.console && w.console.log) {
-            if (w.console.log.apply) {
-                w.console.log.apply(w.console, arguments);
-            } else {
-                a = [];
-                j = arguments.length;
 
-                for (i = 0; i < j; i += 1) a[i] = arguments[i];
+        if (!w.console || !w.console.log) return;
 
-                w.console.log(a);
-            }
+        if (w.console.log.apply) {
+            w.console.log.apply(w.console, arguments);
+        } else {
+            a = [];
+            j = arguments.length;
+
+            for (i = 0; i < j; i += 1) a[i] = arguments[i];
+
+            w.console.log(a);
         }
     }
 
-    function checkLeaks(obj) {
+    function checkLeaks(obj)
+    {
         var key, i, j;
 
         if (!obj || (typeof obj === "function") || checked > 20000) return;
-        if (!isArray(obj) && !isObject(obj)) return;
 
         if (isObject(obj)) {
             logTooBig(obj, getKeys(obj).length);
@@ -43,7 +46,7 @@
             for (key in obj) {
                 if (obj.hasOwnProperty(key)) checkIfNeeded(obj[key]);
             }
-        } else {
+        } else if (isArray(obj)) {
             logTooBig(obj, obj.length);
             j = obj.length;
 
@@ -51,12 +54,14 @@
         }
     }
 
-    function checkIfNeeded(obj) {
+    function checkIfNeeded(obj)
+    {
         if (!obj) return;
 
         checked++;
 
         if (!isArray(obj) && !isObject(obj)) return;
+
         if ((obj.xLeaksChecked || "") === id) return;
 
         try {
@@ -68,7 +73,8 @@
         w.setTimeout(partial(checkLeaks, obj), 5);
     }
 
-    function logTooBig(obj, size) {
+    function logTooBig(obj, size)
+    {
         if (size > limit) {
             issues++;
 
@@ -78,7 +84,8 @@
         }
     }
 
-    function getKeys(obj) {
+    function getKeys(obj)
+    {
         var rval = [], prop;
 
         for (prop in obj) {
@@ -88,7 +95,8 @@
         return rval;
     }
 
-    function isArray(obj) {
+    function isArray(obj)
+    {
         try {
             return obj instanceof Array;
         } catch (e) {
@@ -96,11 +104,13 @@
         }
     }
 
-    function isObject(obj) {
+    function isObject(obj)
+    {
         return typeof obj === "object";
     }
 
-    function partial(fn) {
+    function partial(fn)
+    {
         var args = Array.prototype.slice.call(arguments);
         args.shift();
 
@@ -113,10 +123,7 @@
 
     w.analysisMemoryLeak = {
         "check": function (obj) {
-            if (!obj) {
-                log("Invalid object:", obj);
-                return;
-            }
+            if (!obj) return log("Invalid object:", obj);
 
             checkLeaks(obj);
 
